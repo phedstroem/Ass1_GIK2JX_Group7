@@ -1,0 +1,171 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Webmapp Group 7</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='src/leaflet.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='src/css/bootstrap.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='src/plugins/L.Control.Zoomslider.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='src/plugins/L.Control.Sidebar.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='dist/MarkerCluster.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='dist/MarkerCluster.Default.css') }}">
+        
+        <script src="{{ url_for('static', filename='src/leaflet-src.js') }}"></script>
+        <script src="{{ url_for('static', filename='src/jquery-3.6.0.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='src/turf.min.js') }}" charset="utf-8"></script>
+        <script src="{{ url_for('static', filename='src/plugins/L.Control.Zoomslider.js') }}"></script>
+        <script src="{{ url_for('static', filename='src/plugins/L.Control.Sidebar.js') }}"></script>
+    
+        <script src="{{ url_for('static', filename='data/swedish_counties.js') }}"></script>
+        <script src="{{ url_for('static', filename='data/countries.js') }}"></script>
+        <script src="{{ url_for('static', filename='data/sample1.js') }}"></script>
+        
+
+        
+        
+        
+       
+        
+        <style>
+            #mapdiv {
+                height: 100vh;
+            }  
+            
+            #side-bar {
+			position: absolute;
+			z-index: 1000;
+			background: rgba(255,255,255,0.7);
+			padding: 10px;
+			right: 0;
+            top: 0;
+			margin: 10px;
+			border-radius: 10px;
+			min-height: 200px;
+            }
+                        
+        </style>
+    </head>
+    <body>
+       <div id="mapdiv" class="col-md-9"></div>
+       
+       <div id="side-bar" class="col-md-3"><h2>Tasks</h2>
+            <button id="l1">Task 1</button>
+            <button id="l1">Task 1</button>
+            <button id="l1">Task 1</button>
+  
+       </div>
+       
+       <div id="sidebar"><h1>leaflet-sidebar</h1>
+       </div>
+        
+       <script>
+            var mymap; 
+            var lyrOSM; 
+            var mrkCurrentLocation;
+            var ctlZoomslider;
+            var swedishlayer = L.geoJson(swedish_counties);
+            var countrieslayer
+            var ctlSlidebar;
+            var sample = L.geoJson(sample);
+            var sample1 = L.geoJson(sample1);
+            
+           
+            $(document).ready(function(){
+                mymap = L.map('mapdiv', {center:[60.48868922712431, 15.421371459960938], zoom:13});
+                lyrOSM= L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+                mymap.addLayer(lyrOSM);
+                
+                
+                ctlZoomslider = L.control.zoomslider({position:'topright'}).addTo(mymap);
+                
+                var sidebar = L.control.sidebar('sidebar', {position: 'left'});
+                mymap.addControl(sidebar);
+                
+                var latlngs = [
+					[60.482370725338484, 15.434717248972277],
+					[60.484316080102275, 15.441777259162706],
+					[60.486972387134756, 15.438435413671698]
+				];
+
+				var polyline = L.polyline(latlngs, {color: 'red'}).addTo(mymap);
+
+               
+                               
+                                      
+                var blackIcon = L.icon({
+                    iconUrl: 'map-marker.svg',
+                    iconSize:     [32, 37], // size of the icon
+                    iconAnchor:   [32, 37], // point of the icon which will correspond to marker's location
+                    popupAnchor:  [0, -30] // point from which the popup should open relative to the iconAnchor
+                });
+                
+                // Popup and marker
+                popb = L.marker([60.48868922712431, 15.431371459960938],{icon: blackIcon}).addTo(mymap).bindPopup('Intro to Leaflet');
+                
+                popf= L.marker([60.605898734439805,15.628023594617845], {icon:blackIcon}).addTo(mymap).bindPopup("<h3>Falun Museum</h3><img src= 'img/museum.jpg'width='150px'>")
+                
+                                
+                document.getElementById("l1").addEventListener("click", sweden);
+
+		          function sweden(){
+                      if(mymap.hasLayer(swedishlayer)){
+                          mymap.removeLayer(swedishlayer);
+                         
+                          sidebar.hide();
+                          
+                      } else {
+                          swedishlayer.addTo(mymap);
+                          
+                          sidebar.show();
+                      }
+			
+		          };
+                
+                countrieslayer = L.geoJson(countries, {
+			    onEachFeature: function (feature, layer) {
+				layer.bindPopup(feature.properties.name);
+			     }
+		         });
+
+
+		      document.getElementById("l2").addEventListener("click", c_layers);
+                
+                function c_layers(){
+                    if(mymap.hasLayer(countrieslayer)){
+                        mymap.removeLayer(countrieslayer);
+                    } 
+                    else {
+                        countrieslayer.addTo(mymap);
+                        }
+                    };
+                
+                
+                
+                $("#btnFalun").click(function(){
+                    mymap.setView([60.605866810126194, 15.628008842468262], 17);
+                })
+
+                // Lägger in bild.
+                var imageUrl = "{{ url_for('static', filename='img/IKEA.png') }}",
+                imageBounds = [[60.4824324199421, 15.42050251660831], [60.48216283310694, 15.4224873512496], [60.480952307741774, 15.420148465023646], [60.4807778614982, 15.4215539425264]];
+                L.imageOverlay(imageUrl, imageBounds).addTo(mymap);
+                
+                
+                // Buffer
+                            
+                sample1.addTo(mymap);
+                var s2 = sample1.toGeoJSON();
+                
+                var samplegeo = turf.buffer(s2, 50,{units: 'meters' });
+
+                var samplegeol = L.geoJSON(samplegeo, {style:{color:'yellow', dashArray:'5,5', fillOpacity:0.3}}).addTo(mymap);
+                   
+                    
+  
+            });
+            
+
+            
+       </script>
+    </body>
+</html> -->

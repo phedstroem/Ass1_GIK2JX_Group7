@@ -1,0 +1,16 @@
+# Python-skräp
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtuella miljöer (Viktigast!)
+venv/
+env/
+ENV/
+
+# Miljövariabler (om du skapar sådana senare för lösenord etc)
+.env
+
+# Operativsystem-filer
+.DS_Store
+Thumbs.db
