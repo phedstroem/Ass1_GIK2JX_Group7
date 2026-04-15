@@ -78,8 +78,6 @@
   
        </div>
        
-       <div id="sidebar"><h1>leaflet-sidebar</h1>
-       </div>
         
        <script>
             var mymap; 
@@ -101,23 +99,27 @@
                 
                 ctlZoomslider = L.control.zoomslider({position:'topright'}).addTo(mymap);
                 
-                // Task 1 
-                var sidebar = L.control.sidebar('sidebar', {position: 'left'});
-                mymap.addControl(sidebar);
-                
-                             
-                document.getElementById("t1").addEventListener("click", sweden);
 
-		          function sweden(){
-                      if(mymap.hasLayer(swedishlayer)){
-                          mymap.removeLayer(swedishlayer);
-                         
-                          sidebar.hide();
+                // Task 1 
+                // Punkten 
+                var point = L.marker([60.484229422052806, 15.417932404301126]) 
+                    .bindPopup("<h4>Kupolen</h4><p>Ett shoppingcenter i Borlänge</p><img src='static/img/Kupolen.png' width='150px'>");
+                // Linjen
+                var line = L.polyline([[60.48954511346011, 15.42504208778226], [60.603974949628025, 15.622487368169402]], {color: 'Black'})
+                    .bindPopup("<h4>Blg-Falun</h4><p>Fågelvägen mellan Borlänge och Falun</p><img src='static/img/Fagelvagen.png' width='150px'>")
+
+                    document.getElementById("t1").addEventListener("click", taskOne);
+
+		          function taskOne(){
+                      if(mymap.hasLayer(point)){
+                          mymap.removeLayer(poin);
+                          mymap.removeLayer(line);
+                
                           
                       } else {
-                          swedishlayer.addTo(mymap);
-                          
-                          sidebar.show();
+                          point.addTo(mymap);
+                          line.addTo(mymap);
+            
                       }
 			
 		          };
