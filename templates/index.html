@@ -78,8 +78,6 @@
   
        </div>
        
-       <div id="sidebar"><h1>leaflet-sidebar</h1>
-       </div>
         
        <script>
             var mymap; 
@@ -101,23 +99,32 @@
                 
                 ctlZoomslider = L.control.zoomslider({position:'topright'}).addTo(mymap);
                 
-                // Task 1 
-                var sidebar = L.control.sidebar('sidebar', {position: 'left'});
-                mymap.addControl(sidebar);
-                
-                             
-                document.getElementById("t1").addEventListener("click", sweden);
 
-		          function sweden(){
-                      if(mymap.hasLayer(swedishlayer)){
-                          mymap.removeLayer(swedishlayer);
-                         
-                          sidebar.hide();
+                // Task 1 
+                // Punkten 
+                var point = L.marker([60.484229422052806, 15.417932404301126]) 
+                    .bindPopup("<h4>Kupolen</h4><p>Ett shoppingcenter i Borlänge</p><img src='static/img/Kupolen.png' width='150px'>");
+                // Linjen
+                var line = L.polyline([[60.48954511346011, 15.42504208778226], [60.603974949628025, 15.622487368169402]], {color: 'red'})
+                    .bindPopup("<h4>Blg-Falun</h4><p>Fågelvägen mellan Borlänge och Falun</p><img src='static/img/Fagelvagen.png' width='150px'>")
+                // Polygon
+                var polygon = L.polygon([[61.15100465267432, 14.452944288711791], [60.906107491709776, 14.429290785709469],[60.6594017680805,15.034829030131021],[60.92096459775286,15.184183945038825],[61.02795305124883,14.68370950226361],[61.15179064615006,14.704061627751656]], {color:'Green'})
+                    .bindPopup("<Siljansbygden</h4><p>Det natursköna området runt siljan</p><img src='static/img/Dalabild.png' width='150px'>")
+
+                document.getElementById("t1").addEventListener("click", taskOne);
+
+		          function taskOne(){
+                      if(mymap.hasLayer(point)){
+                          mymap.removeLayer(point); // Räcker med en här
+                          mymap.removeLayer(line);
+                          mymap.removeLayer(polygon);
+                
                           
                       } else {
-                          swedishlayer.addTo(mymap);
-                          
-                          sidebar.show();
+                          point.addTo(mymap);
+                          line.addTo(mymap);
+                          polygon.addTo(mymap);
+            
                       }
 			
 		          };
