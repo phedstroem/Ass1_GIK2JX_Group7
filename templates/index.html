@@ -77,6 +77,8 @@
             <button id="t8">Task 8</button>
   
        </div>
+
+       <div id="sidebar"></div>
        
         
        <script>
@@ -95,7 +97,11 @@
                 mymap = L.map('mapdiv', {center:[60.48868922712431, 15.421371459960938], zoom:13});
                 lyrOSM= L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
                 mymap.addLayer(lyrOSM);
-                
+                // Initiera sidebar-kontrollen
+                var sidebar = L.control.sidebar('sidebar', {
+                    position: 'left'
+                });
+                mymap.addControl(sidebar);
                 
                 ctlZoomslider = L.control.zoomslider({position:'topright'}).addTo(mymap);
                 
@@ -157,11 +163,11 @@
                         locations.forEach(function(loc) {
                             var marker = L.marker(loc.coords);
                             marker.on('click', function() {
-                                document.getElementById("sidebar").innerHTML = `
+                                sidebar.setContent(`
                                     <h2>${loc.name}</h2>
                                     <hr>
                                     <p><b>Information:</b> ${loc.info}</p>
-                                `;
+                                `);
                                 sidebar.show(); 
                             });
                             task2LayerGroup.addLayer(marker); // Lägg till markern i gruppen
