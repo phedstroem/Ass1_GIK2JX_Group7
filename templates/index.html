@@ -104,8 +104,7 @@
                 // Task 1 
                 var sidebar = L.control.sidebar('sidebar', {position: 'left'});
                 mymap.addControl(sidebar);
-                
-                             
+
                 document.getElementById("t1").addEventListener("click", sweden);
 
 		          function sweden(){
@@ -121,26 +120,97 @@
                       }
 			
 		          };
-                
-                  // Task 2
-                countrieslayer = L.geoJson(countries, {
-			    onEachFeature: function (feature, layer) {
-				layer.bindPopup(feature.properties.name);
-			     }
-		         });
 
-            
-		      document.getElementById("t2").addEventListener("click", c_layers);
+                // Task 2 
+                // 5 platser i Borlänge
+                var locations = [
+                   {name: "Kupolen", info: "Kupolen invigdes i september 1990 och var från början ett två våningar kombinerat köpcentrum och evenemangsarena med arenan på plan två. 1995 byggdes ett nytt våningsplan mellan befintligt köpcentrum och arenadelen och Kupolen rymde då dubbelt så många butiker som tidigare.", 
+                   coords: [60.484, 15.418]},
+                   {name: "Högskolan Dalarna", info: "2024 flyttade högskolan in på Campus Borlänge och blev Sveriges nyaste campus beläget mitt i centrum. På campuset samlas utbildning och forskning inom data och it, turism, samhälle, ekonomi och teknik.", 
+                   coords: [60.487, 15.421]},
+                   {name: "Borlänge Central", info: "Borlänge centralstation, kortform Borlänge C, är en järnvägsstation i centrala Borlänge. Här korsar Bergslagsbanan Dalabanan. Stationen har ett resecentrum för Dalatrafiks busstrafik och var också utgångspunkt för trafiken på Västerdalsbanan.", 
+                   coords: [60.488, 15.430]},
+                   {name: "Maserhallen", info: "Maserhallen är en idrottsanläggning för inomhusidrott i Borlänge som stod klar 1967. I Maserhallen finns det två inomhushallar, en bowlinghall, en 25 m simbassäng med hopptorn, ett äventyrsbad (Aqua Nova) med relaxavdelning och två gym.", 
+                   coords: [60.479, 15.425]},
+                   {name: "2047 Science Center", info: "Verksamheten öppnade 1986 under namnet Framtidsmuseet. Det var då inrymt som en del av Folkets hus i Borlänge. 2017 tog man ner skylten Framtidsmuseet och bytte namn till 2047 Science Center. Namnbytet motiverades med att man inte såg sig som ett museum utan som ett mer modernt inriktat vetenskapscentrum ", 
+                   coords: [60.485, 15.420]}
+];
                 
-                function c_layers(){
-                    if(mymap.hasLayer(countrieslayer)){
-                        mymap.removeLayer(countrieslayer);
+                  // Funktion för Task 2
+                  var task2LayerGroup = L.layerGroup();
+
+                // Event listener för Task 2 knappen
+                document.getElementById("t2").addEventListener("click", function() {
+                    if (mymap.hasLayer(task2LayerGroup)) {
+                        mymap.removeLayer(task2LayerGroup);
                     } 
+                    // Skapa punkterna och lägg till dem
                     else {
-                        countrieslayer.addTo(mymap);
-                        }
-                    };
+                        locations.forEach(function(loc) {
+                            var marker = L.marker(loc.coords);
+                            marker.on('click', function() {
+                                document.getElementById("sidebar").innerHTML = `
+                                    <h2>${loc.name}</h2>
+                                    <hr>
+                                    <p><b>Information:</b> ${loc.info}</p>
+                                `;
+                                sidebar.show(); 
+                            });
+                            task2LayerGroup.addLayer(marker); // Lägg till markern i gruppen
+                        });
+                        task2LayerGroup.addTo(mymap); // Lägg till hela gruppen på kartan
+                        mymap.setView([60.485, 15.42], 14);
+                    }
+
+                    // Zoomar till området
+                    mymap.setView([60.485, 15.42], 14);
+                });
+
+                // Task 3
+                var task3LayerGroup = L.layerGroup(); // Grupp för butiker och buffertar
+
+                document.getElementById("t3").addEventListener("click", function() {
+                    // Om lagret redan finns -> Ta bort det
+                    if (mymap.hasLayer(task3LayerGroup)) {
+                        mymap.removeLayer(task3LayerGroup);
+                    } 
+                    // Kör analysen och lägg till på kartan
+                    else {
+                        $.getJSON("/static/data/supermarket.geoJSON", function(data) {
+                            var allBuffers = [];
+                            
+                            // Först skapar vi butikslagret
+                            var stores = L.geoJson(data, {
+                                onEachFeature: function (feature, layer) {
+                                    layer.bindPopup("Butik: " + feature.properties.name);
+                                    allBuffers.push(turf.buffer(feature, 1, {units: 'kilometers'}));
+                                }
+                            });
+                            task3LayerGroup.addLayer(stores); // Lägg till butiker i gruppen
                 
+                            // Här skapar vi buffertarna
+                            allBuffers.forEach(function(currentBuffer, index) {
+                                var isOverlapping = false;
+                                allBuffers.forEach(function(otherBuffer, otherIndex) {
+                                    if (index !== otherIndex && turf.intersect(currentBuffer, otherBuffer)) {
+                                        isOverlapping = true;
+                                    }
+                                });
+                
+                                var bufferLayer = L.geoJson(currentBuffer, {
+                                    style: {
+                                        color: isOverlapping ? "red" : "green",
+                                        fillOpacity: 0.2
+                                    }
+                                });
+                                task3LayerGroup.addLayer(bufferLayer); // Lägg till buffer i gruppen
+                            });
+                
+                            task3LayerGroup.addTo(mymap); // Visa allt på kartan
+                            mymap.fitBounds(stores.getBounds());
+                        });
+                    }
+                });
             });
             
 
