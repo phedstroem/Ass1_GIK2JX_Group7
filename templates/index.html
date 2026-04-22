@@ -225,7 +225,62 @@
                         });
                     }
                 });
-            });
+
+                // Task 6
+
+                // platserna där vi visa temperatur
+                var tempLocations = [
+                   {name: "Borlänge", info: "Borlänge", 
+                   coords: [60.481424756432915, 15.428001437016889]},
+                   {name: "Falun", info: "Falun", 
+                   coords: [60.60787960601539, 15.640291042780945]},
+                   {name: "Djurås", info: "Djurås", 
+                   coords: [60.559970355514906, 15.129291307869408]},
+                   {name: "Leksand", info: "Leksand", 
+                   coords: [60.73584063135766, 15.000834527046777]},
+                   {name: "Ludvika", info: "Ludvika", 
+                   coords: [60.14556030882662, 15.180324421453832]}
+            ];
+
+
+                // Skapar en grupp så att vi enkelt kan lägga till och ta bort alla markörer samtidigt
+                  var task6LayerGroup = L.layerGroup();
+
+                // Event listener för Task 6 knappen
+                document.getElementById("t6").addEventListener("click", function() {
+                    if (mymap.hasLayer(task6LayerGroup)) {
+                        mymap.removeLayer(task6LayerGroup);
+                    } 
+                    // Skapa punkterna och lägg till dem
+                    else {
+                        tempLocations.forEach(function(loc) {
+                            var marker = L.marker(loc.coords);
+                            // Här gör vi popupen
+                            marker.bindPopup(`
+                            <div>
+                            <h4>${loc.name}</h4>
+                            <p>Väderdata hämtas... Visar väder just nu</p>
+                            </div>`
+                            );
+
+                            marker.on('click', function() {
+                                sidebar.setContent(`
+                                    <h2>${loc.name}</h2>
+                                    <hr>
+                                    <p><b>Väderprognos:</b> ${loc.info}</p>
+                                `);
+                                sidebar.show(); 
+                            });
+                            task6LayerGroup.addLayer(marker); // Lägg till markern i gruppen
+                        });
+                        task6LayerGroup.addTo(mymap); // Lägg till hela gruppen på kartan
+                        // Zomma till rimlig nivå
+                        mymap.setView([60.507855040518876, 15.382499006468237], 10);
+                    }
+
+                });
+
+             });
             
 
             
