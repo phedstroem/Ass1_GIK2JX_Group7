@@ -19,6 +19,7 @@
         <script src="{{ url_for('static', filename='data/swedish_counties.js') }}"></script>
         <script src="{{ url_for('static', filename='data/countries.js') }}"></script>
         <script src="{{ url_for('static', filename='data/sample1.js') }}"></script>
+        <script src="https://d3js.org/d3.v7.min.js"></script>
         
 
         
@@ -222,6 +223,79 @@
                 
                             task3LayerGroup.addTo(mymap); // Visa allt på kartan
                             mymap.fitBounds(stores.getBounds());
+                        });
+                    }
+                });
+
+                // Task 7
+
+                var clusterLayer; // Skapar variabeln utanför så den kan nås för toggling
+
+                document.getElementById("t7").addEventListener("click", function() {
+                    if (mymap.hasLayer(clusterLayer)) {
+                        mymap.removeLayer(clusterLayer);
+                    } else {
+                        // Ladda CSV-filen
+                        d3.csv("/static/data/school_locs.csv").then(function(data) {
+                            
+                            // Omvandla CSV till GeoJSON-punkter
+                            var points = data.map(function(d) {
+                                // xcoord = longitud, ycoord = latitud
+                                var lon = parseFloat(d.xcoord);
+                                var lat = parseFloat(d.ycoord);
+                                
+                                return turf.point([lon, lat], {
+                                    name: d.Name,
+                                    desc: d.description
+                                });
+                            });
+                            
+                            var featureCollection = turf.featureCollection(points);
+                
+                            // Utför K-means clustering med 3 kluster för Stockholm
+                            var numberOfClusters = 3; // Justera antalet kluster efter behov
+                            var clustered = turf.clustersKmeans(featureCollection, {numberOfClusters: numberOfClusters});
+                
+                            // Färger för klustren - la in fler färger då jag provade med 5 kluster först
+                            var colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00'];
+                
+                            // Skapa lagret
+                            clusterLayer = L.geoJson(clustered, {
+                                pointToLayer: function (feature, latlng) {
+                                    var clusterId = feature.properties.cluster;
+                                    return L.circleMarker(latlng, {
+                                        radius: 15,
+                                        fillColor: colors[clusterId % colors.length],
+                                        color: "#fff",
+                                        weight: 2,
+                                        opacity: 1,
+                                        fillOpacity: 0.8
+                                    });
+                                },
+                                onEachFeature: function(feature, layer) {
+                                    // Här visar vi info i sidebaren
+                                    layer.on('click', function() {
+                                        sidebar.setContent(`
+                                            <div style="padding:15px;">
+                                                <h2>${feature.properties.name}</h2>
+                                                <p style="font-size: 0.9em;">${feature.properties.desc}</p>
+                                                <hr>
+                                                <small>Kluster: ${feature.properties.cluster}</small>
+                                            </div>
+                                        `);
+                                        sidebar.show();
+                                    });
+                                    // Snabb-info vid hover
+                                    layer.bindTooltip("<span style='font-size: 30px; font-weight: bold;'>" + feature.properties.name + "</span>", {
+                                        permanent: false,   // Visas bara vid hover
+                                        direction: "top",   // Placeras ovanför punkten
+                                        offset: [0, -10]    // Flyttar upp tooltippen lite från punkten
+                                    });
+                                }
+                            }).addTo(mymap);
+                
+                            // Zooma in så att alla skolor syns
+                            mymap.fitBounds(clusterLayer.getBounds());
                         });
                     }
                 });
