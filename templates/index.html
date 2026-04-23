@@ -171,9 +171,9 @@
                             var marker = L.marker(loc.coords);
                             marker.on('click', function() {
                                 sidebar.setContent(`
-                                    <h2>${loc.name}</h2>
-                                    <hr>
-                                    <p><b>Information:</b> ${loc.info}</p>
+                                    <div style="padding: 15px; font-size: 24px;"> <h2 style="font-size: 36px;">${loc.name}</h2> <hr>
+                                        <p><b>Information:</b> ${loc.info}</p>
+                                    </div>
                                 `);
                                 sidebar.show(); 
                             });
@@ -203,7 +203,7 @@
                             // Först skapar vi butikslagret
                             var stores = L.geoJson(data, {
                                 onEachFeature: function (feature, layer) {
-                                    layer.bindPopup("Butik: " + feature.properties.name);
+                                    layer.bindPopup('<div style="font-size: 25px;"><b>Butik: </b>' + feature.properties.name + '</div>');
                                     allBuffers.push(turf.buffer(feature, 1, {units: 'kilometers'}));
                                 }
                             });
