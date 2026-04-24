@@ -256,7 +256,7 @@
                         tempLocations.forEach(function(loc) {
                             var marker = L.marker(loc.coords);
                             
-                            // Här gör vi en grund popup som visas direkt innan vädret hunnit hämtas
+                            // Här gör vi en "grund popup" som visas direkt innan vädret hunnit hämtas
                             marker.bindPopup(`
                             <div>
                             <h4>${loc.name}</h4>
@@ -265,6 +265,21 @@
                             );
 
                             marker.on('click', function() {
+                                // Spar url med rätt kordinater från Open-Meteo.com
+                                const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.coords[0]}&longitude=${loc.coords[1]}&daily=temperature_2m_max,temperature_2m_min&current=temperature_2m&timezone=auto&past_days=0&forecast_days=7`;
+
+                                // hämtar väderdata från url - Open-Meteo
+                                $.getJSON(url, function(data) {
+                                    const currentTemp = data.current.temperature_2m;
+
+                                    //Uppdaterar popupen
+                                    marker.setPopupContent(
+                                        `<div>
+                                            <h4>${loc.name}</h4>
+                                            <p>Väder just nu: ${currentTemp}</p>
+                                            </div>`
+                                    )
+                                })
                                 sidebar.setContent(`
                                     <h2>${loc.name}</h2>
                                     <hr>
