@@ -255,11 +255,12 @@
                     else {
                         tempLocations.forEach(function(loc) {
                             var marker = L.marker(loc.coords);
-                            // Här gör vi popupen
+                            
+                            // Här gör vi en grund popup som visas direkt innan vädret hunnit hämtas
                             marker.bindPopup(`
                             <div>
                             <h4>${loc.name}</h4>
-                            <p>Väderdata hämtas... Visar väder just nu</p>
+                            <p>Väderdata hämtas...</p>
                             </div>`
                             );
 
