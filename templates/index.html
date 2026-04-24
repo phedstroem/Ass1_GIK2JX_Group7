@@ -276,16 +276,27 @@
                                     marker.setPopupContent(
                                         `<div>
                                             <h4>${loc.name}</h4>
-                                            <p>Väder just nu: ${currentTemp}</p>
+                                            <p>Väder just nu: ${currentTemp} °C</p>
                                             </div>`
                                     )
+                                    // Gör en lista för sidebaren med väderprognos
+                                    let forecastList = `<h2>7-dagars prognos för ${loc.name}</h2><br>`;
+
+                                    // Prognoserna från API:t kommer som en array med min och maxtemp för 7 dagar framåt, med datum, SOM vi valt. 
+                                    // Vi kör igenom listan och hämtar temperaturerna
+                                    data.daily.time.forEach(function(date, index) {
+                                    let maxTemp = data.daily.temperature_2m_max[index];
+                                    let minTemp = data.daily.temperature_2m_min[index];
+        
+                                    // Vi lägger till en rad för varje dag
+                                    forecastList += `<b>Datum: ${date}</b><br>`;
+                                    forecastList += `Maxtemp: ${maxTemp}° / Mintemp: ${minTemp}°<br><hr>`;
+                                    });
+
+                                    sidebar.setContent(forecastList);
+                                    sidebar.show(); 
                                 })
-                                sidebar.setContent(`
-                                    <h2>${loc.name}</h2>
-                                    <hr>
-                                    <p><b>Väderprognos:</b> ${loc.info}</p>
-                                `);
-                                sidebar.show(); 
+                                
                             });
                             task6LayerGroup.addLayer(marker); // Lägg till markern i gruppen
                         });
