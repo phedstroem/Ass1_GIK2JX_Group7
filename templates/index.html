@@ -9,13 +9,17 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='src/plugins/L.Control.Sidebar.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='dist/MarkerCluster.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='dist/MarkerCluster.Default.css') }}">
+
         
         <script src="{{ url_for('static', filename='src/leaflet-src.js') }}"></script>
         <script src="{{ url_for('static', filename='src/jquery-3.6.0.min.js') }}"></script>
         <script src="{{ url_for('static', filename='src/turf.min.js') }}" charset="utf-8"></script>
         <script src="{{ url_for('static', filename='src/plugins/L.Control.Zoomslider.js') }}"></script>
         <script src="{{ url_for('static', filename='src/plugins/L.Control.Sidebar.js') }}"></script>
-    
+        <script src="{{ url_for('static', filename='dist/leaflet.markercluster.js') }}"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@kalisio/leaflet.donutcluster@1.1.0/src/Leaflet.DonutCluster.css">
+        <script src="https://cdn.jsdelivr.net/npm/@kalisio/leaflet.donutcluster@1.1.0/src/Leaflet.DonutCluster.js"></script>
+        
         <script src="{{ url_for('static', filename='data/swedish_counties.js') }}"></script>
         <script src="{{ url_for('static', filename='data/countries.js') }}"></script>
         <script src="{{ url_for('static', filename='data/sample1.js') }}"></script>
@@ -78,6 +82,7 @@
             <button id="t3">Task 3</button>
             <button id="t4">Task 4</button>
             <button id="t5">Task 5</button>
+            <button id="t5_1">Task 5.1</button>
             <h3>Vg</h3>
             <button id="t6">Task 6</button>
             <button id="t7">Task 7</button>
@@ -263,37 +268,87 @@
                     if (fuelClusterGroup && mymap.hasLayer(fuelClusterGroup)) {
                         mymap.removeLayer(fuelClusterGroup);
                     } 
-                    // Annars, rita ut det
+                    
                     else {
-                        // 1. Skapa en tom "kluster-container"
+                        
                         fuelClusterGroup = L.markerClusterGroup();
 
-                        // 2. Läs in datan från filen
                         $.getJSON("/static/data/fuel.geojson", function(data) {
                             
-                            // 3. Omvandla datan till kart-punkter
+                            
                             var fuelLayer = L.geoJson(data, {
                                 onEachFeature: function(feature, layer) {
-                                    // Hämta namn på macken (eller skriv Okänd om det saknas)
+                                    
                                     var stationName = feature.properties.name || "Okänd bensinstation";
                                     var brand = feature.properties.brand || "";
                                     
-                                    // Skapa en popup
                                     layer.bindPopup("<div style='font-size: 16px;'><b>" + stationName + "</b><br>" + brand + "</div>");
                                 }
                             });
 
-                            // 4. Stoppa in punkterna i kluster-containern
+                            //  Stoppa in punkterna i kluster-containern
                             fuelClusterGroup.addLayer(fuelLayer);
 
-                            // 5. Lägg till containern på kartan
+                            //  Lägg till containern på kartan
                             mymap.addLayer(fuelClusterGroup);
 
-                            // 6. Zooma så allt syns
+                            //  Zooma så allt syns
                             mymap.fitBounds(fuelLayer.getBounds());
                         });
                     }
                 });
+
+                // Task 5.1 - DonutCluster
+                var donutClusterGroup; 
+               
+                document.getElementById("t5_1").addEventListener("click", function() {
+                    
+                    if (donutClusterGroup && mymap.hasLayer(donutClusterGroup)) {
+                        mymap.removeLayer(donutClusterGroup);
+                    } 
+                    else {
+                        $.getJSON("/static/data/fuel.geojson", function(data) {
+                                                       
+                            donutClusterGroup = L.DonutCluster(
+                                {}, 
+                                {   
+                                    key: 'brand', 
+                                    arcColorDict: {
+                                        'OKQ8': 'blue',
+                                        'Circle K': 'orange',
+                                        'Preem': 'green',
+                                        'INGO': 'red',
+                                        'St1': 'purple',
+                                        'Qstar': 'yellow',
+                                        'Din-X': 'brown'
+                                    },
+                                    defaultColor: 'gray', 
+                                    arcWidth: 6,
+                                    titleColor: 'black',
+                                    size: 50
+                                }
+                            );
+                           
+                            L.geoJson(data, {
+                                onEachFeature: function(feature, layer) {
+                                    var stationName = feature.properties.name || "Okänd bensinstation";
+                                    var brand = feature.properties.brand || "Okänt märke";
+                                    
+                                    layer.bindPopup("<div style='font-size: 16px;'><b>" + stationName + "</b><br>Märke: " + brand + "</div>");
+                                                                       
+                                    layer.options.brand = brand;
+                                                                        
+                                    donutClusterGroup.addLayer(layer);
+                                }
+                            });
+
+                            // Lägg till allt på kartan
+                            mymap.addLayer(donutClusterGroup);
+                            mymap.fitBounds(donutClusterGroup.getBounds());
+                        });
+                    }
+                });
+
                 // Task 7
 
                 var clusterLayer; // Skapar variabeln utanför så den kan nås för toggling
