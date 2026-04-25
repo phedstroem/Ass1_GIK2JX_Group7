@@ -35,13 +35,15 @@
             #side-bar {
 			position: absolute;
 			z-index: 1000;
-			background: rgba(167, 164, 164, 0.7);
+			background: rgb(244, 224, 224);
 			padding: 40px;
 			right: 0;
             top: 0;
 			margin: 10px;
+            border: #0b0e0b solid 3px;
 			border-radius: 10px;
-			min-height: 100%;
+            box-shadow: #0b0e0b 5px 5px 15px;
+			min-height: 99%;
             }
             /* Design av knapparna */
             #side-bar button {
@@ -63,7 +65,15 @@
             #side-bar button:hover {
                 background-color: #225424;
                 transform: scale(1.2); /* Gör knappen lite större vid hovring */
-}
+            }
+            
+            .sidebar-footer-text {
+                position: absolute;
+                bottom: 20px;
+                left: 30px;
+                font-size: 30px;
+                color: #171717;
+            }
                         
         </style>
     </head>
@@ -82,6 +92,8 @@
             <button id="t6">Task 6</button>
             <button id="t7">Task 7</button>
             <button id="t8">Task 8</button>
+
+            <div class="sidebar-footer-text">Grupp 7 <br> Rickard Andersson <br> Fredrik Domert Eriksson <br> Per Hedström</div>
   
        </div>
 
