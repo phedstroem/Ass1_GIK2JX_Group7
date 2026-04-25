@@ -232,7 +232,68 @@
                         });
                     }
                 });
+                // Task 4 - bild över Dalarna
+                var imageOverlayLayer; 
 
+                document.getElementById("t4").addEventListener("click", function() {
+                    
+                    if (imageOverlayLayer && mymap.hasLayer(imageOverlayLayer)) {
+                        mymap.removeLayer(imageOverlayLayer);
+                    } 
+                    else {
+                        
+                        var imageUrl = '/static/img/Dalarna.jpg';
+                        
+                        var imageBounds = [[59.85, 12.18], [62.29, 16.80]]; 
+                        
+                        imageOverlayLayer = L.imageOverlay(imageUrl, imageBounds, {
+                            opacity: 0.6 
+                        });
+                        
+                        imageOverlayLayer.addTo(mymap);
+                        mymap.fitBounds(imageBounds);
+                    }
+                });
+
+                // Task 5
+                var fuelClusterGroup; // Variabel för klustret
+
+                document.getElementById("t5").addEventListener("click", function() {
+                    // Om klustret finns, ta bort det
+                    if (fuelClusterGroup && mymap.hasLayer(fuelClusterGroup)) {
+                        mymap.removeLayer(fuelClusterGroup);
+                    } 
+                    // Annars, rita ut det
+                    else {
+                        // 1. Skapa en tom "kluster-container"
+                        fuelClusterGroup = L.markerClusterGroup();
+
+                        // 2. Läs in datan från filen
+                        $.getJSON("/static/data/fuel.geojson", function(data) {
+                            
+                            // 3. Omvandla datan till kart-punkter
+                            var fuelLayer = L.geoJson(data, {
+                                onEachFeature: function(feature, layer) {
+                                    // Hämta namn på macken (eller skriv Okänd om det saknas)
+                                    var stationName = feature.properties.name || "Okänd bensinstation";
+                                    var brand = feature.properties.brand || "";
+                                    
+                                    // Skapa en popup
+                                    layer.bindPopup("<div style='font-size: 16px;'><b>" + stationName + "</b><br>" + brand + "</div>");
+                                }
+                            });
+
+                            // 4. Stoppa in punkterna i kluster-containern
+                            fuelClusterGroup.addLayer(fuelLayer);
+
+                            // 5. Lägg till containern på kartan
+                            mymap.addLayer(fuelClusterGroup);
+
+                            // 6. Zooma så allt syns
+                            mymap.fitBounds(fuelLayer.getBounds());
+                        });
+                    }
+                });
                 // Task 7
 
                 var clusterLayer; // Skapar variabeln utanför så den kan nås för toggling
