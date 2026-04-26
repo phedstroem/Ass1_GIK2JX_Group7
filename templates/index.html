@@ -19,6 +19,7 @@
         <script src="{{ url_for('static', filename='data/swedish_counties.js') }}"></script>
         <script src="{{ url_for('static', filename='data/countries.js') }}"></script>
         <script src="{{ url_for('static', filename='data/sample1.js') }}"></script>
+        <script src="https://d3js.org/d3.v7.min.js"></script>
         
 
         
@@ -34,28 +35,45 @@
             #side-bar {
 			position: absolute;
 			z-index: 1000;
-			background: rgba(255,255,255,0.7);
-			padding: 10px;
+			background: #1b2732;
+            color: white;
+			padding: 40px;
 			right: 0;
             top: 0;
 			margin: 10px;
+            border: #0b0e0b solid 3px;
 			border-radius: 10px;
-			min-height: 200px;
+            box-shadow: #0b0e0b 5px 5px 15px;
+			min-height: 99%;
             }
             /* Design av knapparna */
             #side-bar button {
                 background-color: #4CAF50; 
-                border: none;
                 color: white;
                 padding: 8px 16px;
                 text-align: center;
                 text-decoration: none;
                 display: inline-block;
-                font-size: 14px;
-                margin: 4px 2px;
+                font-size: 30px;
+                margin: 4px 2px 30px 10px;
                 cursor: pointer;
-                border-radius: 8px; 
-                transition: 0.3s;   
+                border-radius: 8px;
+                box-shadow: #3c673d 2px 2px 5px; 
+                transition: 0.3s;
+            }
+            
+            /* Hover-effekt för knapparna */
+            #side-bar button:hover {
+                background-color: #225424;
+                transform: scale(1.2); /* Gör knappen lite större vid hovring */
+            }
+            
+            .sidebar-footer-text {
+                position: absolute;
+                bottom: 20px;
+                left: 30px;
+                font-size: 30px;
+                color: white;
             }
                         
         </style>
@@ -75,6 +93,8 @@
             <button id="t6">Task 6</button>
             <button id="t7">Task 7</button>
             <button id="t8">Task 8</button>
+
+            <div class="sidebar-footer-text">Grupp 7 <br> Rickard Andersson <br> Fredrik Domert Eriksson <br> Per Hedström</div>
   
        </div>
 
@@ -164,9 +184,9 @@
                             var marker = L.marker(loc.coords);
                             marker.on('click', function() {
                                 sidebar.setContent(`
-                                    <h2>${loc.name}</h2>
-                                    <hr>
-                                    <p><b>Information:</b> ${loc.info}</p>
+                                    <div style="padding: 15px; font-size: 24px;"> <h2 style="font-size: 36px;">${loc.name}</h2> <hr>
+                                        <p><b>Information:</b> ${loc.info}</p>
+                                    </div>
                                 `);
                                 sidebar.show(); 
                             });
@@ -196,7 +216,7 @@
                             // Först skapar vi butikslagret
                             var stores = L.geoJson(data, {
                                 onEachFeature: function (feature, layer) {
-                                    layer.bindPopup("Butik: " + feature.properties.name);
+                                    layer.bindPopup('<div style="font-size: 25px;"><b>Butik: </b>' + feature.properties.name + '</div>');
                                     allBuffers.push(turf.buffer(feature, 1, {units: 'kilometers'}));
                                 }
                             });
@@ -315,6 +335,79 @@
                 });
 
              });
+                // Task 7
+
+                var clusterLayer; // Skapar variabeln utanför så den kan nås för toggling
+
+                document.getElementById("t7").addEventListener("click", function() {
+                    if (mymap.hasLayer(clusterLayer)) {
+                        mymap.removeLayer(clusterLayer);
+                    } else {
+                        // Ladda CSV-filen
+                        d3.csv("/static/data/school_locs.csv").then(function(data) {
+                            
+                            // Omvandla CSV till GeoJSON-punkter
+                            var points = data.map(function(d) {
+                                // xcoord = longitud, ycoord = latitud
+                                var lon = parseFloat(d.xcoord);
+                                var lat = parseFloat(d.ycoord);
+                                
+                                return turf.point([lon, lat], {
+                                    name: d.Name,
+                                    desc: d.description
+                                });
+                            });
+                            
+                            var featureCollection = turf.featureCollection(points);
+                
+                            // Utför K-means clustering med 3 kluster för Stockholm
+                            var numberOfClusters = 3; // Justera antalet kluster efter behov
+                            var clustered = turf.clustersKmeans(featureCollection, {numberOfClusters: numberOfClusters});
+                
+                            // Färger för klustren - la in fler färger då jag provade med 5 kluster först
+                            var colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00'];
+                
+                            // Skapa lagret
+                            clusterLayer = L.geoJson(clustered, {
+                                pointToLayer: function (feature, latlng) {
+                                    var clusterId = feature.properties.cluster;
+                                    return L.circleMarker(latlng, {
+                                        radius: 15,
+                                        fillColor: colors[clusterId % colors.length],
+                                        color: "#fff",
+                                        weight: 2,
+                                        opacity: 1,
+                                        fillOpacity: 0.8
+                                    });
+                                },
+                                onEachFeature: function(feature, layer) {
+                                    // Här visar vi info i sidebaren
+                                    layer.on('click', function() {
+                                        sidebar.setContent(`
+                                            <div style="padding:15px;">
+                                                <h2>${feature.properties.name}</h2>
+                                                <p style="font-size: 0.9em;">${feature.properties.desc}</p>
+                                                <hr>
+                                                <small>Kluster: ${feature.properties.cluster}</small>
+                                            </div>
+                                        `);
+                                        sidebar.show();
+                                    });
+                                    // Snabb-info vid hover
+                                    layer.bindTooltip("<span style='font-size: 30px;'>" + feature.properties.name + "</span>", {
+                                        permanent: false,   // Visas bara vid hover
+                                        direction: "top",   // Placeras ovanför punkten
+                                        offset: [0, -10]    // Flyttar upp tooltippen lite från punkten
+                                    });
+                                }
+                            }).addTo(mymap);
+                
+                            // Zooma in så att alla skolor syns
+                            mymap.fitBounds(clusterLayer.getBounds());
+                        });
+                    }
+                });
+            });
             
 
             
