@@ -287,10 +287,17 @@
                                     data.daily.time.forEach(function(date, index) {
                                     let maxTemp = data.daily.temperature_2m_max[index];
                                     let minTemp = data.daily.temperature_2m_min[index];
-        
+                                    
+                                    // Formaterar om datumet
+                                    formattedDate = new Date(date).toLocaleDateString('sv-SE', { 
+                                        weekday: 'short', // "mån", "tis" osv.
+                                        day: 'numeric', 
+                                        month: 'short'
+                                    });
+
                                     // Vi lägger till en rad för varje dag
-                                    forecastList += `<b>Datum: ${date}</b><br>`;
-                                    forecastList += `Maxtemp: ${maxTemp}° / Mintemp: ${minTemp}°<br><hr>`;
+                                    forecastList += `<b>${formattedDate}</b><br>`;
+                                    forecastList += `Maxtemp: ${maxTemp}° | Mintemp: ${minTemp}°<br><hr>`;
                                     });
 
                                     sidebar.setContent(forecastList);
