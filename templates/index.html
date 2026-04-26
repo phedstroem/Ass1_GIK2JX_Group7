@@ -246,6 +246,95 @@
                     }
                 });
 
+                // Task 6
+
+                // platserna där vi visa temperatur
+                var tempLocations = [
+                   {name: "Borlänge", info: "Borlänge", 
+                   coords: [60.481424756432915, 15.428001437016889]},
+                   {name: "Falun", info: "Falun", 
+                   coords: [60.60787960601539, 15.640291042780945]},
+                   {name: "Djurås", info: "Djurås", 
+                   coords: [60.559970355514906, 15.129291307869408]},
+                   {name: "Leksand", info: "Leksand", 
+                   coords: [60.73584063135766, 15.000834527046777]},
+                   {name: "Ludvika", info: "Ludvika", 
+                   coords: [60.14556030882662, 15.180324421453832]}
+            ];
+
+
+                // Skapar en grupp så att vi enkelt kan lägga till och ta bort alla markörer samtidigt
+                  var task6LayerGroup = L.layerGroup();
+
+                // Event listener för Task 6 knappen
+                document.getElementById("t6").addEventListener("click", function() {
+                    if (mymap.hasLayer(task6LayerGroup)) {
+                        mymap.removeLayer(task6LayerGroup);
+                    } 
+                    // Skapa punkterna och lägg till dem
+                    else {
+                        tempLocations.forEach(function(loc) {
+                            var marker = L.marker(loc.coords);
+                            
+                            // Här gör vi en "grund popup" som visas direkt innan vädret hunnit hämtas
+                            marker.bindPopup(`
+                            <div>
+                            <h4>${loc.name}</h4>
+                            <p>Väderdata hämtas...</p>
+                            </div>`
+                            );
+
+                            marker.on('click', function() {
+                                // Spar url med rätt kordinater från Open-Meteo.com
+                                const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.coords[0]}&longitude=${loc.coords[1]}&daily=temperature_2m_max,temperature_2m_min&current=temperature_2m&timezone=auto&past_days=0&forecast_days=7`;
+
+                                // hämtar väderdata från url - Open-Meteo
+                                $.getJSON(url, function(data) {
+                                    const currentTemp = data.current.temperature_2m;
+
+                                    //Uppdaterar popupen
+                                    marker.setPopupContent(
+                                        `<div>
+                                            <h4>${loc.name}</h4>
+                                            <p>Väder just nu: ${currentTemp} °C</p>
+                                            </div>`
+                                    )
+                                    // Gör en lista för sidebaren med väderprognos
+                                    let forecastList = `<h2>7-dagars prognos för ${loc.name}</h2><br>`;
+
+                                    // Prognoserna från API:t kommer som en array med min och maxtemp för 7 dagar framåt, med datum, SOM vi valt. 
+                                    // Vi kör igenom listan och hämtar temperaturerna
+                                    data.daily.time.forEach(function(date, index) {
+                                    let maxTemp = data.daily.temperature_2m_max[index];
+                                    let minTemp = data.daily.temperature_2m_min[index];
+                                    
+                                    // Formaterar om datumet
+                                    formattedDate = new Date(date).toLocaleDateString('sv-SE', { 
+                                        weekday: 'short', // "mån", "tis" osv.
+                                        day: 'numeric', 
+                                        month: 'short'
+                                    });
+
+                                    // Vi lägger till en rad för varje dag
+                                    forecastList += `<b>${formattedDate}</b><br>`;
+                                    forecastList += `Maxtemp: ${maxTemp}° | Mintemp: ${minTemp}°<br><hr>`;
+                                    });
+
+                                    sidebar.setContent(forecastList);
+                                    sidebar.show(); 
+                                })
+                                
+                            });
+                            task6LayerGroup.addLayer(marker); // Lägg till markern i gruppen
+                        });
+                        task6LayerGroup.addTo(mymap); // Lägg till hela gruppen på kartan
+                        // Zomma till rimlig nivå
+                        mymap.setView([60.507855040518876, 15.382499006468237], 10);
+                    }
+
+                });
+
+             });
                 // Task 7
 
                 var clusterLayer; // Skapar variabeln utanför så den kan nås för toggling
