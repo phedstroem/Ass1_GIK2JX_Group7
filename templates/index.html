@@ -530,6 +530,100 @@
                         });
                     }
                 });
+
+               // Task 8
+                var task8Layer; // Skapar variabeln utanför så den kan nås för toggling
+
+                document.getElementById("t8").addEventListener("click", function() {
+                    if (task8Layer && mymap.hasLayer(task8Layer)) {
+                        mymap.removeLayer(task8Layer);
+                    } else {
+                        task8Layer = L.layerGroup(); // Vi använder en grupp för att hålla två lager
+
+                        // Ladda CSV-filen (Skolor)
+                        d3.csv("/static/data/school_locs.csv").then(function(schoolData) {
+                            
+                            // Omvandla CSV till GeoJSON-punkter (och skapa buffertar)
+                            var schoolBuffers = schoolData.map(function(d) {
+                                // xcoord = longitud, ycoord = latitud
+                                var lon = parseFloat(d.xcoord);
+                                var lat = parseFloat(d.ycoord);
+                                var pt = turf.point([lon, lat]);
+                                
+                                return turf.buffer(pt, 2, {units: 'kilometers'});
+                            });
+
+                            // Skapa lagret (De blåa buffertarna)
+                            var bufferLayer = L.geoJson(turf.featureCollection(schoolBuffers), {
+                                style: { color: '#3388ff', fillOpacity: 0.15, weight: 1 }
+                            });
+                            task8Layer.addLayer(bufferLayer);
+
+                            // Ladda CSV-filen (Befolkning) - Använder d3.dsv för att läsa semikolon!
+                            d3.dsv(";", "/static/data/Stockholm_pop.csv").then(function(popData) {
+                                var outsidePoints = [];
+
+                                // Omvandla CSV till GeoJSON-punkter
+                                popData.forEach(function(d) {
+                                    // xcoord = longitud, ycoord = latitud
+                                    var lon = parseFloat(d.xcoord || d.X);
+                                    var lat = parseFloat(d.ycoord || d.Y);
+                                    
+                                    if (!isNaN(lon) && !isNaN(lat)) {
+                                        var pt = turf.point([lon, lat], {
+                                            name: "Mer än 2 km till närmaste skola" // För hover-texten
+                                        });
+                                        
+                                        var isInside = false;
+
+                                        // Utför kontroll mot skolornas buffertar
+                                        for (var i = 0; i < schoolBuffers.length; i++) {
+                                            if (turf.booleanPointInPolygon(pt, schoolBuffers[i])) {
+                                                isInside = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (!isInside) {
+                                            outsidePoints.push(pt);
+                                        }
+                                    }
+                                });
+
+                                // Färger för punkterna
+                                var alertColor = '#ff8c00'; // Orange färg
+
+                                // Skapa lagret (Befolkningen utanför)
+                                var popLayer = L.geoJson(turf.featureCollection(outsidePoints), {
+                                    pointToLayer: function (feature, latlng) {
+                                        return L.circleMarker(latlng, {
+                                            radius: 8,
+                                            fillColor: alertColor,
+                                            color: "#000", // Svart kantlinje
+                                            weight: 2,
+                                            opacity: 1,
+                                            fillOpacity: 1
+                                        });
+                                    },
+                                    onEachFeature: function(feature, layer) {
+                                        // Snabb-info vid hover
+                                        layer.bindTooltip("<span style='font-size: 18px;'>" + feature.properties.name + "</span>", {
+                                            permanent: false,   // Visas bara vid hover
+                                            direction: "top",   // Placeras ovanför punkten
+                                            offset: [0, -10]    // Flyttar upp tooltippen lite från punkten
+                                        });
+                                    }
+                                });
+                                
+                                task8Layer.addLayer(popLayer);
+                                task8Layer.addTo(mymap);
+
+                                // Zooma in så att alla skolor syns
+                                mymap.fitBounds(bufferLayer.getBounds());
+                            });
+                        });
+                    }
+                });
             
             
 
