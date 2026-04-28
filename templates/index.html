@@ -531,84 +531,97 @@
                     }
                 });
 
-              // Task 8
-                var task8Layer; 
+              // Task 8 - Skolavstånd
+                var task8LayerGroup; // Skapar en grupp för att enkelt kunna rensa kartan
 
+                // Event listener för Task 8 knappen
                 document.getElementById("t8").addEventListener("click", function() {
-                    if (task8Layer && mymap.hasLayer(task8Layer)) {
-                        mymap.removeLayer(task8Layer);
-                    } else {
-                        task8Layer = L.layerGroup(); 
+                    
+                    // Om lagret redan finns -> Ta bort det
+                    if (task8LayerGroup && mymap.hasLayer(task8LayerGroup)) {
+                        mymap.removeLayer(task8LayerGroup);
+                    } 
+                    // Kör analysen och lägg till punkterna
+                    else {
+                        task8LayerGroup = L.layerGroup(); // Korg för allt som ska ritas ut
 
-                        // Ladda CSV-filen (Skolor), kommaseparerad
+                        // hämtar skolorna
                         d3.csv("/static/data/school_locs.csv").then(function(schoolData) {
-                            
-                            var schoolBuffers = schoolData.map(function(d) {
-                                var lon = parseFloat(d.xcoord);
-                                var lat = parseFloat(d.ycoord);
-                                var pt = turf.point([lon, lat]);
-                                
+
+                            // Skapar en lista med 2km-zoner runt varje skola
+                            const schoolBuffers = schoolData.map(function(d) {
+                                let lon = parseFloat(d.xcoord);
+                                let lat = parseFloat(d.ycoord);
+                                let pt = turf.point([lon, lat]);
+
+                                // Skapar en 2 kilometers buffert
                                 return turf.buffer(pt, 2, {units: 'kilometers'});
                             });
 
-                            var bufferLayer = L.geoJson(turf.featureCollection(schoolBuffers), {
+                            // Ritar ut de blå cirklarna på kartan
+                            const bufferLayer = L.geoJson(turf.featureCollection(schoolBuffers), {
                                 style: { color: '#3388ff', fillOpacity: 0.15, weight: 1 }
                             });
-                            task8Layer.addLayer(bufferLayer);
+                            task8LayerGroup.addLayer(bufferLayer);
 
-                            // Ladda CSV-filen (Befolkning) - Använder d3.dsv för semikolon
+                            // hämtar befolkningen (d3.dsv hanterar semikolonet)
                             d3.dsv(";", "/static/data/Stockholm_pop.csv").then(function(popData) {
-                                var outsidePoints = [];
+                                let outsidePoints = [];
 
+                                // Går igenom alla invånare för att kontrollera avstånd
                                 popData.forEach(function(d) {
-                                    
-                                    var lon = parseFloat(d.xcoord || d.X || d.x || d.lon || d.Longitude);
-                                    var lat = parseFloat(d.ycoord || d.Y || d.y || d.lat || d.Latitude);
-                                    
-                                    if (!isNaN(lon) && !isNaN(lat)) {
-                                        var pt = turf.point([lon, lat], {
-                                            name: "Mer än 2 km till närmaste skola"
-                                        });
-                                        
-                                        var isInside = false;
+                                    let lon = parseFloat(d.xcoord || d.X || d.x || d.lon || d.Longitude);
+                                    let lat = parseFloat(d.ycoord || d.Y || d.y || d.lat || d.Latitude);
 
-                                        for (var i = 0; i < schoolBuffers.length; i++) {
+                                    if (!isNaN(lon) && !isNaN(lat)) {
+                                        let pt = turf.point([lon, lat]);
+                                        let isInside = false; // Antar först att punkten är utanför
+
+                                        // Kontrollerar om punkten nuddar någon av skolzonerna
+                                        for (let i = 0; i < schoolBuffers.length; i++) {
                                             if (turf.booleanPointInPolygon(pt, schoolBuffers[i])) {
-                                                isInside = true;
+                                                isInside = true; // Punkten ligger nära en skola
                                                 break;
                                             }
                                         }
 
+                                        // Sparar punkter som hamnar utanför
                                         if (!isInside) {
                                             outsidePoints.push(pt);
                                         }
                                     }
                                 });
 
-                                var alertColor = '#ff8c00'; // Orange färg
-
-                                var popLayer = L.geoJson(turf.featureCollection(outsidePoints), {
+                                // ritar ut de orangea prickarna
+                                const popLayer = L.geoJson(turf.featureCollection(outsidePoints), {
                                     pointToLayer: function (feature, latlng) {
-                                        return L.circleMarker(latlng, {
+                                        let marker = L.circleMarker(latlng, {
                                             radius: 8,
-                                            fillColor: alertColor,
-                                            color: "#000", 
+                                            fillColor: "#ff8c00", // Orange färg
+                                            color: "#000",
                                             weight: 2,
                                             opacity: 1,
                                             fillOpacity: 1
                                         });
-                                    },
-                                    onEachFeature: function(feature, layer) {
-                                        layer.bindTooltip("<span style='font-size: 18px;'>" + feature.properties.name + "</span>", {
-                                            permanent: false,   
-                                            direction: "top",   
-                                            offset: [0, -10]    
-                                        });
+
+                                        // Popup med HTML
+                                        marker.bindPopup(`
+                                            <div style="text-align: center; padding: 10px;">
+                                                <h4>🚶‍♂️ Lång skolväg</h4>
+                                                <hr>
+                                                <p>Det här området har mer än <b>2 kilometer</b><br>fågelvägen till närmaste skola.</p>
+                                            </div>
+                                        `);
+
+                                        return marker;
                                     }
                                 });
-                                
-                                task8Layer.addLayer(popLayer);
-                                task8Layer.addTo(mymap);
+
+                                // Lägger till hela gruppen på kartan
+                                task8LayerGroup.addLayer(popLayer);
+                                task8LayerGroup.addTo(mymap);
+
+                                // Zoomar till rimlig nivå så allt syns
                                 mymap.fitBounds(bufferLayer.getBounds());
                             });
                         });
