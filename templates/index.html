@@ -9,9 +9,7 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='src/plugins/L.Control.Sidebar.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='dist/MarkerCluster.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='dist/MarkerCluster.Default.css') }}">
-
-        
-
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@kalisio/leaflet.donutcluster@1.1.0/src/Leaflet.DonutCluster.css">
         
         <script src="{{ url_for('static', filename='src/leaflet-src.js') }}"></script>
         <script src="{{ url_for('static', filename='src/jquery-3.6.0.min.js') }}"></script>
@@ -19,23 +17,8 @@
         <script src="{{ url_for('static', filename='src/plugins/L.Control.Zoomslider.js') }}"></script>
         <script src="{{ url_for('static', filename='src/plugins/L.Control.Sidebar.js') }}"></script>
         <script src="{{ url_for('static', filename='dist/leaflet.markercluster.js') }}"></script>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@kalisio/leaflet.donutcluster@1.1.0/src/Leaflet.DonutCluster.css">
         <script src="https://cdn.jsdelivr.net/npm/@kalisio/leaflet.donutcluster@1.1.0/src/Leaflet.DonutCluster.js"></script>
-        
-        <script src="{{ url_for('static', filename='dist/leaflet.markercluster.js') }}"></script>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@kalisio/leaflet.donutcluster@1.1.0/src/Leaflet.DonutCluster.css">
-        <script src="https://cdn.jsdelivr.net/npm/@kalisio/leaflet.donutcluster@1.1.0/src/Leaflet.DonutCluster.js"></script>
-        
-        <script src="{{ url_for('static', filename='data/swedish_counties.js') }}"></script>
-        <script src="{{ url_for('static', filename='data/countries.js') }}"></script>
-        <script src="{{ url_for('static', filename='data/sample1.js') }}"></script>
         <script src="https://d3js.org/d3.v7.min.js"></script>
-        
-
-        
-        
-        
-       
         
         <style>
             #mapdiv {
@@ -116,13 +99,8 @@
             var lyrOSM; 
             var mrkCurrentLocation;
             var ctlZoomslider;
-            var swedishlayer = L.geoJson(swedish_counties);
-            var countrieslayer
-            var ctlSlidebar;
-            var sample = L.geoJson(sample);
-            var sample1 = L.geoJson(sample1);
+
             
-           
             $(document).ready(function(){
                 mymap = L.map('mapdiv', {center:[60.48868922712431, 15.421371459960938], zoom:13});
                 lyrOSM= L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
@@ -145,7 +123,7 @@
                     .bindPopup("<h4>Blg-Falun</h4><p>Fågelvägen mellan Borlänge och Falun</p><img src='static/img/Fagelvagen.png' width='200px'>")
                 // Polygon
                 var polygon = L.polygon([[61.15100465267432, 14.452944288711791], [60.906107491709776, 14.429290785709469],[60.6594017680805,15.034829030131021],[60.92096459775286,15.184183945038825],[61.02795305124883,14.68370950226361],[61.15179064615006,14.704061627751656]], {color:'Green'})
-                    .bindPopup("<Siljansbygden</h4><p>Det natursköna området runt siljan</p><img src='static/img/Dalabild.png' width='200px'>")
+                    .bindPopup("<h4>Siljansbygden</h4><p>Det natursköna området runt siljan</p><img src='static/img/Dalabild.png' width='200px'>")
 
                 document.getElementById("t1").addEventListener("click", taskOne);
 
@@ -456,8 +434,6 @@
                     }
 
                 });
-
-             });
                 // Task 7
 
                 var clusterLayer; // Skapar variabeln utanför så den kan nås för toggling
@@ -530,6 +506,8 @@
                         });
                     }
                 });
+             });
+                
             
             
 
